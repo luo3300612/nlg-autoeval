@@ -1,6 +1,7 @@
 import pysnooper
 from functools import reduce
 from operator import add
+import numpy as np
 
 candidate = "the the the the the the the."
 reference1 = "The cat is on the mat."
@@ -54,7 +55,24 @@ def modified_ngram_precision(candidate, references, n=1):
     count_r = count_references_presence(references, n)
     count_c = count_presence(candidate, n)
     p = sum([min(count_c.get(word, 0), count_r.get(word, 0)) for word in set(count_c.keys()) & set(count_r.keys())])
-    return p / len(count_c)
+    return p / (len(candidate.split(' '))-n+1)
+
+
+# @pysnooper.snoop()
+def bleu(candidate, references):
+    bleu1 = modified_ngram_precision(candidate, references, 1)
+    bleu2 = modified_ngram_precision(candidate, references, 2)
+    bleu3 = modified_ngram_precision(candidate, references, 3)
+    bleu4 = modified_ngram_precision(candidate, references, 4)
+    print(f"BLEU1:{bleu1},BLEU2:{bleu2},BLEU3:{bleu3},BLEU4:{bleu4}")
+    c_length = len(preprocess(candidate).split(' '))
+    r_lengths = np.array(sorted([len(preprocess(reference).split(' ')) for reference in references]))
+    r_sub_c = r_lengths - c_length
+    best_match_index = np.argmin(np.abs(r_sub_c))
+    best_match_length = r_lengths[best_match_index]
+    BP = 1 if c_length > best_match_length else np.exp(1 - best_match_length / c_length)
+    BLEU = BP * (np.exp(0.25 * np.log(bleu1) + 0.25 * np.log(bleu2) + 0.25 * np.log(bleu3) + 0.25 * np.log(bleu4)))
+    return BLEU
 
 
 print("Unigram example2")
@@ -81,3 +99,6 @@ print(modified_ngram_precision(ex1_candidate2, ex1_references, 2))
 print("tritram example1")
 print(modified_ngram_precision(ex1_candidate1, ex1_references, 3))
 print(modified_ngram_precision(ex1_candidate2, ex1_references, 3))
+
+print("BLEU")
+print(bleu(ex1_candidate1,ex1_references))
