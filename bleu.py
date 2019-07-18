@@ -64,7 +64,11 @@ def bleu(candidate, references):
     bleu2 = modified_ngram_precision(candidate, references, 2)
     bleu3 = modified_ngram_precision(candidate, references, 3)
     bleu4 = modified_ngram_precision(candidate, references, 4)
-    print(f"BLEU1:{bleu1},BLEU2:{bleu2},BLEU3:{bleu3},BLEU4:{bleu4}")
+
+    bleu22 = (bleu1 * bleu2) ** (1/2)
+    bleu33 = (bleu1 * bleu2 * bleu3) ** (1/3)
+    bleu44 = (bleu1 * bleu2 * bleu3 * bleu4) ** (1/4)
+    print(f"BLEU1:{bleu1},BLEU2:{bleu22},BLEU3:{bleu33},BLEU4:{bleu44}")
     c_length = len(preprocess(candidate).split(' '))
     r_lengths = np.array(sorted([len(preprocess(reference).split(' ')) for reference in references]))
     r_sub_c = r_lengths - c_length
